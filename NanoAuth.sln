@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29609.76
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoAuth", "NanoAuth\NanoAuth.csproj", "{452AFDC7-922F-4994-8C18-025817E835D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{452AFDC7-922F-4994-8C18-025817E835D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{452AFDC7-922F-4994-8C18-025817E835D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{452AFDC7-922F-4994-8C18-025817E835D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{452AFDC7-922F-4994-8C18-025817E835D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1FCFF7C8-8E0D-41A4-BA11-14486B1C0A3B}
+	EndGlobalSection
+EndGlobal
