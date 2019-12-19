@@ -6,8 +6,10 @@ namespace NanoAuth.Models.Account
     public class LoginInputModel
     {
         [Required]
+        [Display(Name = "Username")]
         public string Username { get; set; }
         [Required]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
         [DisplayName("Remember me")]
         public bool RememberLogin { get; set; }

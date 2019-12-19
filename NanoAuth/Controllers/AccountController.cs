@@ -16,7 +16,11 @@ using NanoAuth.Options;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 
 namespace NanoAuth.Controllers
 {
@@ -31,8 +35,9 @@ namespace NanoAuth.Controllers
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore, IAuthenticationSchemeProvider schemeProvider, IEventService events, UserManager<NanoUser> userManager, SignInManager<NanoUser> signInManager)
+        public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore, IAuthenticationSchemeProvider schemeProvider, IEventService events, UserManager<NanoUser> userManager, SignInManager<NanoUser> signInManager, ILogger<AccountController> logger)
         {
             _interaction = interaction;
             _clientStore = clientStore;
@@ -40,6 +45,7 @@ namespace NanoAuth.Controllers
             _events = events;
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
         /// <summary>
@@ -147,6 +153,124 @@ namespace NanoAuth.Controllers
             return View(vm);
         }
 
+        [HttpGet]
+        public IActionResult Register(string returnUrl)
+        {
+            var vm = BuildRegisterViewModel(returnUrl);
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterInputModel model, string button)
+        {
+            // the user clicked the "cancel" button
+            if (button != "register")
+            {
+                // we go back to the home page
+                return Redirect("~/");
+            }
+
+            if (ModelState.IsValid)
+            {
+                var user = new NanoUser
+                {
+                    UserName = model.Username,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                };
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("User created a new account with password.");
+
+                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    //var callbackUrl = Url.Action("ConfirmEmail", new {userId = user.Id, code});
+
+                    //await _emailSender.SendEmailAsync(model.Email, "Confirm your email",
+                    //    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    {
+                        return RedirectToAction("RegisterConfirmation", "Account", new {model.Email});
+                        //return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
+                    }
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    // request for a local page
+                    return Redirect(Url.IsLocalUrl(model.ReturnUrl) ? model.ReturnUrl : "~/");
+                }
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            // something went wrong, show form with error
+            var vm = BuildRegisterViewModel(model);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RegisterConfirmation(string email)
+        {
+            if (email == null)
+            {
+                return Redirect("~/");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with email '{email}'.");
+            }
+
+            var vm = new RegisterConfirmationViewModel
+            {
+                Email = email,
+                // Once you add a real email sender, you should remove this code that lets you confirm the account
+                DisplayConfirmAccountLink = true
+            };
+
+            if (!vm.DisplayConfirmAccountLink) return View(vm);
+
+            var userId = await _userManager.GetUserIdAsync(user);
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            vm.EmailConfirmationUrl = Url.Action("ConfirmEmail", new {userId, code});
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return Redirect("~/");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{userId}'.");
+            }
+
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+            var vm = new ConfirmEmailViewModel
+            {
+                StatusMessage = result.Succeeded
+                    ? "Thank you for confirming your email."
+                    : "Error confirming your email."
+            };
+            return View(vm);
+        }
+
         #region Helper APIs
 
         private async Task<LoginViewModel> BuildLoginViewModelAsync(string returnUrl)
@@ -214,6 +338,25 @@ namespace NanoAuth.Controllers
             var vm = await BuildLoginViewModelAsync(model.ReturnUrl);
             vm.Username = model.Username;
             vm.RememberLogin = model.RememberLogin;
+            return vm;
+        }
+
+        private RegisterViewModel BuildRegisterViewModel(string returnUrl)
+        {
+            return new RegisterViewModel
+            {
+                ReturnUrl = returnUrl,
+                EnableRegister = true
+            };
+        }
+
+        private RegisterViewModel BuildRegisterViewModel(RegisterInputModel model)
+        {
+            var vm = BuildRegisterViewModel(model.ReturnUrl);
+            vm.Username = model.Username;
+            vm.Email = model.Email;
+            vm.FirstName = model.FirstName;
+            vm.LastName = model.LastName;
             return vm;
         }
 
