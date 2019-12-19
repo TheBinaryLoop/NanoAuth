@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NanoAuth.Data.Identity;
 
 namespace NanoAuth
 {
@@ -23,7 +21,32 @@ namespace NanoAuth
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var contentRoot = Configuration.GetValue<string>(WebHostDefaults.ContentRootKey);
+            var configFolder = Path.Combine(contentRoot, "Config");
+
+            var resManager =
+                new IdentityServerResourceManager(configFolder);
+
             services.AddControllersWithViews();
+
+            var builder = services
+                .AddIdentityServer(options =>
+                {
+                    options.Events.RaiseErrorEvents =
+                        options.Events.RaiseFailureEvents =
+                            options.Events.RaiseInformationEvents =
+                                options.Events.RaiseSuccessEvents = true;
+                })
+                .AddInMemoryIdentityResources(resManager.LoadIdentityResources())
+                .AddInMemoryApiResources(resManager.LoadApiResources())
+                .AddInMemoryClients(resManager.LoadClients())
+                //.AddAspNetIdentity<NanoUser>()
+
+                .AddInMemoryPersistedGrants()
+                .AddInMemoryCaching()
+
+                .AddDeveloperSigningCredential();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,7 +60,7 @@ namespace NanoAuth
             {
                 app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                //app.UseHsts();
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();

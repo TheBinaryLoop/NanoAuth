@@ -1,0 +1,24 @@
+{
+  "ApiSecrets": [
+  ],
+  "Scopes": [
+    {
+      "Name": "tbl.nano.ddns.management",
+      "DisplayName": "NanoDDNS Management",
+      "Description": null,
+      "Required": true,
+      "Emphasize": false,
+      "ShowInDiscoveryDocument": true,
+      "UserClaims": [
+      ]
+    }
+  ],
+  "Enabled": true,
+  "Name": "tbl.nano.ddns.management",
+  "DisplayName": "NanoDDNS Management",
+  "Description": null,
+  "UserClaims": [
+  ],
+  "Properties": {
+  }
+}

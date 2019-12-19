@@ -1,0 +1,13 @@
+{
+  "Required": true,
+  "Emphasize": false,
+  "ShowInDiscoveryDocument": true,
+  "Enabled": true,
+  "Name": "openid",
+  "DisplayName": "Your user identifier",
+  "Description": null,
+  "UserClaims": [
+    "sub"
+  ],
+  "Properties": {}
+}

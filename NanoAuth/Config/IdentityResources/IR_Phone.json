@@ -1,0 +1,14 @@
+{
+  "Required": false,
+  "Emphasize": true,
+  "ShowInDiscoveryDocument": true,
+  "Enabled": true,
+  "Name": "phone",
+  "DisplayName": "Your phone number",
+  "Description": null,
+  "UserClaims": [
+    "phone_number",
+    "phone_number_verified"
+  ],
+  "Properties": {}
+}

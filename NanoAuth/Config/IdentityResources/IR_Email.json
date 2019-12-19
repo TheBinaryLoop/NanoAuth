@@ -1,0 +1,14 @@
+{
+  "Required": false,
+  "Emphasize": true,
+  "ShowInDiscoveryDocument": true,
+  "Enabled": true,
+  "Name": "email",
+  "DisplayName": "Your email address",
+  "Description": null,
+  "UserClaims": [
+    "email",
+    "email_verified"
+  ],
+  "Properties": {}
+}

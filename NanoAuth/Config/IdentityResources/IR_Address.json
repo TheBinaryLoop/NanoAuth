@@ -1,0 +1,13 @@
+{
+  "Required": false,
+  "Emphasize": true,
+  "ShowInDiscoveryDocument": true,
+  "Enabled": true,
+  "Name": "address",
+  "DisplayName": "Your postal address",
+  "Description": null,
+  "UserClaims": [
+    "address"
+  ],
+  "Properties": {}
+}
