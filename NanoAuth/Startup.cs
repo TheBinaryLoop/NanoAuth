@@ -1,11 +1,13 @@
-using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using NanoAuth.Data;
 using NanoAuth.Data.Identity;
+using System.IO;
 
 namespace NanoAuth
 {
@@ -21,6 +23,14 @@ namespace NanoAuth
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<NanoDbContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddIdentity<NanoUser, NanoRole>(options => options.SignIn.RequireConfirmedAccount = true) // TODO: Increase security
+                .AddEntityFrameworkStores<NanoDbContext>()
+                .AddDefaultTokenProviders();
+
             var contentRoot = Configuration.GetValue<string>(WebHostDefaults.ContentRootKey);
             var configFolder = Path.Combine(contentRoot, "Config");
 
@@ -40,9 +50,15 @@ namespace NanoAuth
                 .AddInMemoryIdentityResources(resManager.LoadIdentityResources())
                 .AddInMemoryApiResources(resManager.LoadApiResources())
                 .AddInMemoryClients(resManager.LoadClients())
-                //.AddAspNetIdentity<NanoUser>()
-
-                .AddInMemoryPersistedGrants()
+                .AddAspNetIdentity<NanoUser>()
+                .AddOperationalStore<NanoDbContext>(options =>
+                {
+                    options.ConfigureDbContext = b =>
+                        b.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                            optionsBuilder =>
+                                optionsBuilder.MigrationsAssembly(typeof(Startup).Assembly.GetName()
+                                    .Name));
+                })
                 .AddInMemoryCaching()
 
                 .AddDeveloperSigningCredential();
@@ -67,6 +83,7 @@ namespace NanoAuth
 
             app.UseRouting();
 
+            app.UseIdentityServer();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
