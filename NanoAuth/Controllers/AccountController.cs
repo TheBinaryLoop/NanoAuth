@@ -1,36 +1,45 @@
-﻿using IdentityServer4.Services;
+﻿using IdentityServer4;
+using IdentityServer4.Events;
+using IdentityServer4.Models;
+using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NanoAuth.Attributes;
+using NanoAuth.Data.Identity;
+using NanoAuth.Extensions;
+using NanoAuth.Models;
 using NanoAuth.Models.Account;
 using NanoAuth.Options;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using IdentityServer4.Models;
-using NanoAuth.Extensions;
-using NanoAuth.Models;
 
 namespace NanoAuth.Controllers
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>")]
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>")]
     [SecurityHeaders]
     [AllowAnonymous]
     public class AccountController : Controller
     {
+        private readonly UserManager<NanoUser> _userManager;
+        private readonly SignInManager<NanoUser> _signInManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
 
-        public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore, IAuthenticationSchemeProvider schemeProvider, IEventService events)
+        public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore, IAuthenticationSchemeProvider schemeProvider, IEventService events, UserManager<NanoUser> userManager, SignInManager<NanoUser> signInManager)
         {
             _interaction = interaction;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         /// <summary>
@@ -93,7 +102,49 @@ namespace NanoAuth.Controllers
                 return Redirect("~/");
             }
 
-            return Ok();
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberLogin, lockoutOnFailure: true);
+                if (result.Succeeded)
+                {
+                    var user = await _userManager.FindByNameAsync(model.Username);
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
+
+                    if (context != null)
+                    {
+                        if (await _clientStore.IsPkceClientAsync(context.ClientId))
+                        {
+                            // if the client is PKCE then we assume it's native, so this change in how to
+                            // return the response is for better UX for the end user.
+                            return View("Redirect", new RedirectViewModel { RedirectUrl = model.ReturnUrl });
+                        }
+
+                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                        return Redirect(model.ReturnUrl);
+                    }
+
+                    // request for a local page
+                    if (Url.IsLocalUrl(model.ReturnUrl))
+                    {
+                        return Redirect(model.ReturnUrl);
+                    }
+
+                    if (string.IsNullOrEmpty(model.ReturnUrl))
+                    {
+                        return Redirect("~/");
+                    }
+
+                    // user might have clicked on a malicious link - should be logged
+                    throw new Exception("invalid return URL");
+                }
+
+                await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
+                ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
+            }
+
+            // something went wrong, show form with error
+            var vm = await BuildLoginViewModelAsync(model);
+            return View(vm);
         }
 
         #region Helper APIs
@@ -103,14 +154,14 @@ namespace NanoAuth.Controllers
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
             {
-                var local = context.IdP == IdentityServer4.IdentityServerConstants.LocalIdentityProvider;
+                var local = context.IdP == IdentityServerConstants.LocalIdentityProvider;
 
                 // this is meant to short circuit the UI and only trigger the one external IdP
                 var vm = new LoginViewModel
                 {
                     EnableLocalLogin = local,
                     ReturnUrl = returnUrl,
-                    Username = context?.LoginHint,
+                    Username = context?.LoginHint
                 };
 
                 if (!local)
@@ -156,6 +207,14 @@ namespace NanoAuth.Controllers
                 Username = context?.LoginHint,
                 ExternalProviders = providers.ToArray()
             };
+        }
+
+        private async Task<LoginViewModel> BuildLoginViewModelAsync(LoginInputModel model)
+        {
+            var vm = await BuildLoginViewModelAsync(model.ReturnUrl);
+            vm.Username = model.Username;
+            vm.RememberLogin = model.RememberLogin;
+            return vm;
         }
 
         #endregion
