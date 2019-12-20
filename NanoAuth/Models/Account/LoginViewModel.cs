@@ -5,6 +5,8 @@ namespace NanoAuth.Models.Account
 {
     public class LoginViewModel : LoginInputModel
     {
+        public string StatusMessage { get; set; }
+
         public bool AllowRememberLogin { get; set; } = true;
         public bool EnableLocalLogin { get; set; } = true;
 

@@ -1,0 +1,35 @@
+﻿@model NanoAuth.Models.Account.LoggedOutViewModel
+
+@{
+    ViewData["Title"] = "LoggedOut";
+    // set this so the layout rendering sees an anonymous user
+    ViewData["signed-out"] = true;
+}
+
+<h1>
+    @ViewData["Title"]
+    <small>You are now logged out</small>
+</h1>
+<div class="row">
+
+    @if (Model.PostLogoutRedirectUri != null)
+    {
+        <div>
+            Click <a class="PostLogoutRedirectUri" href="@Model.PostLogoutRedirectUri">here</a> to return to the
+            <span>@Model.ClientName</span> application.
+        </div>
+    }
+
+    @if (Model.SignOutIframeUrl != null)
+    {
+        <iframe width="0" height="0" class="signout" src="@Model.SignOutIframeUrl"></iframe>
+    }
+</div>
+
+@section scripts
+{
+    @if (Model.AutomaticRedirectAfterSignOut)
+    {
+        <script src="~/js/signout-redirect.js"></script>
+    }
+}
