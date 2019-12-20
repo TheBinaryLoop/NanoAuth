@@ -17,6 +17,7 @@ using NanoAuth.Extensions;
 using NanoAuth.Models;
 using NanoAuth.Models.Account;
 using NanoAuth.Options;
+using NanoAuth.Services;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -36,9 +37,12 @@ namespace NanoAuth.Controllers
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
+        private readonly IEmailSender _emailSender;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore, IAuthenticationSchemeProvider schemeProvider, IEventService events, UserManager<NanoUser> userManager, SignInManager<NanoUser> signInManager, ILogger<AccountController> logger)
+        public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore,
+            IAuthenticationSchemeProvider schemeProvider, IEventService events, UserManager<NanoUser> userManager,
+            SignInManager<NanoUser> signInManager, ILogger<AccountController> logger, IEmailSender emailSender)
         {
             _interaction = interaction;
             _clientStore = clientStore;
@@ -47,6 +51,7 @@ namespace NanoAuth.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _emailSender = emailSender;
         }
 
         /// <summary>
@@ -147,6 +152,8 @@ namespace NanoAuth.Controllers
                     throw new Exception("invalid return URL");
                 }
 
+                // TODO: Check why login has failed
+
                 invalidCredentials = true;
                 await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
                 ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
@@ -191,12 +198,13 @@ namespace NanoAuth.Controllers
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    //var callbackUrl = Url.Action("ConfirmEmail", new {userId = user.Id, code});
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    var callbackUrl = Url.ActionLink("ConfirmEmail", "Account", new { userId = user.Id, code },
+                        Url.ActionContext.HttpContext.Request.Scheme, Url.ActionContext.HttpContext.Request.Host.Value);
 
-                    //await _emailSender.SendEmailAsync(model.Email, "Confirm your email",
-                    //    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    await _emailSender.SendVerifyEmailEmailAsync(model.Email, "Confirm your email",
+                        $"{user.FirstName} {user.LastName}", callbackUrl);
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
@@ -238,7 +246,7 @@ namespace NanoAuth.Controllers
             {
                 Email = email,
                 // Once you add a real email sender, you should remove this code that lets you confirm the account
-                DisplayConfirmAccountLink = true
+                //DisplayConfirmAccountLink = true
             };
 
             if (!vm.DisplayConfirmAccountLink) return View(vm);
@@ -282,8 +290,8 @@ namespace NanoAuth.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout(string logoutId)
         {
-            if (User?.Identity?.IsAuthenticated != true) 
-            //    return RedirectToAction("AccessDenied", "Account");
+            if (User?.Identity?.IsAuthenticated != true)
+                //    return RedirectToAction("AccessDenied", "Account");
                 return RedirectToAction("Index", "Home");
 
             // build a model so the logout page knows what to display

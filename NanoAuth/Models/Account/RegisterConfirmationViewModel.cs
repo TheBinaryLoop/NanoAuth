@@ -4,7 +4,7 @@
     {
         public string Email { get; set; }
 
-        public bool DisplayConfirmAccountLink { get; set; }
+        public bool DisplayConfirmAccountLink { get; set; } = false;
 
         public string EmailConfirmationUrl { get; set; }
     }

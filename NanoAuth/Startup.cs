@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NanoAuth.Data;
 using NanoAuth.Data.Identity;
+using NanoAuth.Extensions;
+using NanoAuth.Services;
+using NanoAuth.Settings;
 using System.IO;
 
 namespace NanoAuth
@@ -23,6 +26,8 @@ namespace NanoAuth
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.ConfigureSettings<MailgunSettings>(Configuration.GetSection("Mailgun"));
+
             services.AddDbContext<NanoDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
