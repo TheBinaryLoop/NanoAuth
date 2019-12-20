@@ -60,7 +60,7 @@ namespace NanoAuth.Controllers
         /// <param name="returnUrl">The url to redirect to after a successful login</param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> Login(string returnUrl)
+        public async Task<IActionResult> Login(string returnUrl = "~/")
         {
             // build a model so we know what to show on the login page
             var vm = await BuildLoginViewModelAsync(returnUrl);
@@ -166,7 +166,7 @@ namespace NanoAuth.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register(string returnUrl)
+        public IActionResult Register(string returnUrl = "~/")
         {
             var vm = BuildRegisterViewModel(returnUrl);
 

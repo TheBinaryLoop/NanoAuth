@@ -29,7 +29,7 @@ namespace NanoAuth
             services.ConfigureSettings<MailgunSettings>(Configuration.GetSection("Mailgun"));
 
             services.AddDbContext<NanoDbContext>(options =>
-                options.UseSqlServer(
+                options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddIdentity<NanoUser, NanoRole>(options => options.SignIn.RequireConfirmedAccount = true) // TODO: Increase security
@@ -59,7 +59,7 @@ namespace NanoAuth
                 .AddOperationalStore<NanoDbContext>(options =>
                 {
                     options.ConfigureDbContext = b =>
-                        b.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                        b.UseSqlite(Configuration.GetConnectionString("DefaultConnection"),
                             optionsBuilder =>
                                 optionsBuilder.MigrationsAssembly(typeof(Startup).Assembly.GetName()
                                     .Name));
