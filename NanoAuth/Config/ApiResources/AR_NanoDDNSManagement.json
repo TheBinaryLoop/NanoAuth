@@ -3,7 +3,7 @@
   ],
   "Scopes": [
     {
-      "Name": "tbl.nano.ddns.management",
+      "Name": "tbl.nanoddns.management",
       "DisplayName": "NanoDDNS Management",
       "Description": null,
       "Required": true,
@@ -14,7 +14,7 @@
     }
   ],
   "Enabled": true,
-  "Name": "tbl.nano.ddns.management",
+  "Name": "tbl.nanoddns.management",
   "DisplayName": "NanoDDNS Management",
   "Description": null,
   "UserClaims": [
