@@ -12,6 +12,7 @@ using NanoAuth.Services;
 using NanoAuth.Settings;
 using NanoAuth.Settings.Google;
 using System.IO;
+using Microsoft.AspNetCore.HttpOverrides;
 using NanoAuth.Services.Google;
 
 namespace NanoAuth
@@ -32,6 +33,7 @@ namespace NanoAuth
             services.ConfigureSettings<ReCaptchaSettings>(Configuration.GetSection("Google:reCaptcha"));
             services.AddTransient<IReCaptchaService, ReCaptchaService>();
 
+            services.AddHttpContextAccessor();
 
             services.AddDbContext<NanoDbContext>(options =>
                 options.UseSqlite(
