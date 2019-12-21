@@ -1,4 +1,4 @@
-﻿namespace NanoAuth.Security.Audits
+﻿namespace NanoAuth.Data.Audits
 {
     public enum UserAuditEventType
     {

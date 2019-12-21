@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,11 +10,10 @@ using NanoAuth.Data;
 using NanoAuth.Data.Identity;
 using NanoAuth.Extensions;
 using NanoAuth.Services;
+using NanoAuth.Services.Google;
 using NanoAuth.Settings;
 using NanoAuth.Settings.Google;
 using System.IO;
-using Microsoft.AspNetCore.HttpOverrides;
-using NanoAuth.Services.Google;
 
 namespace NanoAuth
 {
@@ -80,6 +80,7 @@ namespace NanoAuth
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            InitializeDatabase(app);
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -110,6 +111,14 @@ namespace NanoAuth
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+        }
+
+        private void InitializeDatabase(IApplicationBuilder app)
+        {
+            using (var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                scope.ServiceProvider.GetRequiredService<NanoDbContext>().Database.Migrate();
+            }
         }
     }
 }
