@@ -17,7 +17,7 @@
                 <form id="account" method="post">
                     <h4>Create an account to log in.</h4>
                     <hr />
-                    @*<div asp-validation-summary="All" class="text-danger"></div>*@
+                    <partial name="_ValidationSummary" />
 
                     <input type="hidden" asp-for="ReturnUrl" />
                     <input type="hidden" asp-for="Token" />

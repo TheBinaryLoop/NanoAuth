@@ -118,8 +118,6 @@ namespace NanoAuth.Controllers
                 return Redirect("~/");
             }
 
-            var invalidCredentials = false;
-
             // Google reCAPTCHA
             var reCaptcha = await _reCaptchaService.ValidateAsync(model.Token);
             if (!reCaptcha.success)
@@ -163,14 +161,12 @@ namespace NanoAuth.Controllers
 
                 // TODO: Check why login has failed
 
-                invalidCredentials = true;
                 await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
                 ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
             }
 
             // something went wrong, show form with error
             var vm = await BuildLoginViewModelAsync(model);
-            if (invalidCredentials) vm.StatusMessage = "Error: Invalid username or password!";
             return View(vm);
         }
 
