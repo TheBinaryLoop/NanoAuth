@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NanoAuth.Models.Account
 {
-    public class LoginInputModel
+    public class LoginInputModel : ReCaptchaTokenInputModel
     {
         [Required]
         [Display(Name = "Username")]

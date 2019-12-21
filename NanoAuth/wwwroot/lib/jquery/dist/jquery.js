@@ -498,7 +498,7 @@ function isArrayLike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v2.3.3
+ * Sizzle CSS Selector Engine V2.3.3
  * https://sizzlejs.com/
  *
  * Copyright jQuery Foundation and other contributors
@@ -8705,7 +8705,7 @@ function ajaxHandleResponses( s, jqXHR, responses ) {
  * Also sets the responseXXX fields on the jqXHR instance
  */
 function ajaxConvert( s, response, jqXHR, isSuccess ) {
-	var conv2, current, conv, tmp, prev,
+	var conV2, current, conv, tmp, prev,
 		converters = {},
 
 		// Work with a copy of dataTypes in case we need to modify it for conversion
@@ -8750,10 +8750,10 @@ function ajaxConvert( s, response, jqXHR, isSuccess ) {
 
 				// If none found, seek a pair
 				if ( !conv ) {
-					for ( conv2 in converters ) {
+					for ( conV2 in converters ) {
 
-						// If conv2 outputs current
-						tmp = conv2.split( " " );
+						// If conV2 outputs current
+						tmp = conV2.split( " " );
 						if ( tmp[ 1 ] === current ) {
 
 							// If prev can be converted to accepted input
@@ -8763,10 +8763,10 @@ function ajaxConvert( s, response, jqXHR, isSuccess ) {
 
 								// Condense equivalence converters
 								if ( conv === true ) {
-									conv = converters[ conv2 ];
+									conv = converters[ conV2 ];
 
 								// Otherwise, insert the intermediate dataType
-								} else if ( converters[ conv2 ] !== true ) {
+								} else if ( converters[ conV2 ] !== true ) {
 									current = tmp[ 0 ];
 									dataTypes.unshift( tmp[ 1 ] );
 								}

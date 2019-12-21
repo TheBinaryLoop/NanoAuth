@@ -2771,7 +2771,7 @@
         y = options.y;
     var popper = data.offsets.popper;
 
-    // Remove this legacy support in Popper.js v2
+    // Remove this legacy support in Popper.js V2
 
     var legacyGpuAccelerationOption = find(data.instance.modifiers, function (modifier) {
       return modifier.name === 'applyStyle';
@@ -3560,7 +3560,7 @@
      * You can provide a single value (as `Number` or `String`), or a pair of values
      * as `String` divided by a comma or one (or more) white spaces.<br />
      * The latter is a deprecated method because it leads to confusion and will be
-     * removed in v2.<br />
+     * removed in V2.<br />
      * Additionally, it accepts additions and subtractions between different units.
      * Note that multiplications and divisions aren't supported.
      *
@@ -4040,7 +4040,7 @@
        * include `popper-utils.js` before `popper.js`.
        *
        * **DEPRECATION**: This way to access PopperUtils is deprecated
-       * and will be removed in v2! Use the PopperUtils module directly instead.
+       * and will be removed in V2! Use the PopperUtils module directly instead.
        * Due to the high instability of the methods contained in Utils, we can't
        * guarantee them to follow semver. Use them at your own risk!
        * @static

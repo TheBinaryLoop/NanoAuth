@@ -23,6 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NanoAuth.Services.Google;
 
 namespace NanoAuth.Controllers
 {
@@ -38,11 +39,13 @@ namespace NanoAuth.Controllers
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
         private readonly IEmailSender _emailSender;
+        private readonly IReCaptchaService _reCaptchaService;
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(IIdentityServerInteractionService interaction, IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider, IEventService events, UserManager<NanoUser> userManager,
-            SignInManager<NanoUser> signInManager, ILogger<AccountController> logger, IEmailSender emailSender)
+            SignInManager<NanoUser> signInManager, ILogger<AccountController> logger, IEmailSender emailSender,
+            IReCaptchaService reCaptchaService)
         {
             _interaction = interaction;
             _clientStore = clientStore;
@@ -52,6 +55,7 @@ namespace NanoAuth.Controllers
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _reCaptchaService = reCaptchaService;
         }
 
         /// <summary>
@@ -115,6 +119,11 @@ namespace NanoAuth.Controllers
             }
 
             var invalidCredentials = false;
+
+            // Google reCAPTCHA
+            var reCaptcha = await _reCaptchaService.ValidateAsync(model.Token);
+            if (!reCaptcha.success)
+                ModelState.AddModelError("", "There was an error validating reCAPTCHA. Please try again!");
 
             if (ModelState.IsValid)
             {
@@ -183,6 +192,11 @@ namespace NanoAuth.Controllers
                 // we go back to the home page
                 return Redirect("~/");
             }
+
+            // Google reCAPTCHA
+            var reCaptcha = await _reCaptchaService.ValidateAsync(model.Token);
+            if (!reCaptcha.success)
+                ModelState.AddModelError("", "There was an error validating reCAPTCHA. Please try again!");
 
             if (ModelState.IsValid)
             {

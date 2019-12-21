@@ -10,7 +10,9 @@ using NanoAuth.Data.Identity;
 using NanoAuth.Extensions;
 using NanoAuth.Services;
 using NanoAuth.Settings;
+using NanoAuth.Settings.Google;
 using System.IO;
+using NanoAuth.Services.Google;
 
 namespace NanoAuth
 {
@@ -27,6 +29,9 @@ namespace NanoAuth
         public void ConfigureServices(IServiceCollection services)
         {
             services.ConfigureSettings<MailgunSettings>(Configuration.GetSection("Mailgun"));
+            services.ConfigureSettings<ReCaptchaSettings>(Configuration.GetSection("Google:reCaptcha"));
+            services.AddTransient<IReCaptchaService, ReCaptchaService>();
+
 
             services.AddDbContext<NanoDbContext>(options =>
                 options.UseSqlite(
