@@ -118,10 +118,12 @@ namespace NanoAuth.Controllers
                 return Redirect("~/");
             }
 
+#if !DEBUG
             // Google reCAPTCHA
             var reCaptcha = await _reCaptchaService.ValidateAsync(model.Token);
             if (!reCaptcha.success)
                 ModelState.AddModelError("", "There was an error validating reCAPTCHA. Please try again!");
+#endif
 
             if (ModelState.IsValid)
             {
@@ -189,10 +191,12 @@ namespace NanoAuth.Controllers
                 return Redirect("~/");
             }
 
+#if !DEBUG
             // Google reCAPTCHA
             var reCaptcha = await _reCaptchaService.ValidateAsync(model.Token);
             if (!reCaptcha.success)
                 ModelState.AddModelError("", "There was an error validating reCAPTCHA. Please try again!");
+#endif
 
             if (ModelState.IsValid)
             {
