@@ -212,13 +212,17 @@ namespace NanoAuth.Controllers
                 {
                     _logger.LogInformation("User created a new account with password.");
 
+                    await _userManager.AddToRoleAsync(user, "Member");
+
+#if !DEBUG
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.ActionLink("ConfirmEmail", "Account", new { userId = user.Id, code },
                         Url.ActionContext.HttpContext.Request.Scheme, Url.ActionContext.HttpContext.Request.Host.Value);
 
                     await _emailSender.SendVerifyEmailEmailAsync(model.Email, "Confirm your email",
-                        $"{user.FirstName} {user.LastName}", callbackUrl);
+                        $"{user.FirstName} {user.LastName}", callbackUrl);              
+#endif
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
@@ -259,8 +263,10 @@ namespace NanoAuth.Controllers
             var vm = new RegisterConfirmationViewModel
             {
                 Email = email,
+#if DEBUG
                 // Once you add a real email sender, you should remove this code that lets you confirm the account
-                //DisplayConfirmAccountLink = true
+                DisplayConfirmAccountLink = true
+#endif
             };
 
             if (!vm.DisplayConfirmAccountLink) return View(vm);
